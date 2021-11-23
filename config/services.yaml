@@ -1,0 +1,101 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    api_version: 'v1'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    Adshares\AdSelect\UI\:
+        resource: '../src/UI/*'
+        exclude: '../src/UI/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    Adshares\AdSelect\UI\Controller\:
+        resource: '../src/UI/Controller'
+        tags: ['controller.service_arguments']
+
+    Adshares\AdSelect\UI\Command\CreateIndex:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+
+    Adshares\AdSelect\UI\Command\CleanUserHistory:
+        arguments:
+            $dataCleaner: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Service\DataCleaner'
+
+    Adshares\AdSelect\UI\Command\CleanEvents:
+        arguments:
+            $dataCleaner: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Service\DataCleaner'
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Client:
+        arguments:
+            $hosts:
+                - { host: '%env(ES_HOST)%', port: '%env(ES_PORT)%' }
+            $logger: '@logger'
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Service\DataCleaner:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Service\StatsUpdater:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+            $bulkLimit: 500
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Service\ExperimentsUpdater:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+            $bulkLimit: 500
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Service\ElasticSearchCampaignUpdater:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+            $bulkLimit: 500
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Service\EventCollector:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+            $bulkLimit: 500
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Service\EventFinder:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+            $logger: '@logger'
+
+    Adshares\AdSelect\Infrastructure\ElasticSearch\Service\BannerFinder:
+        arguments:
+            $client: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Client'
+            $experimentChance: '%env(ES_EXPERIMENT_CHANCE)%'
+            $logger: '@logger'
+
+    Adshares\AdSelect\UI\EventListener\ApiExceptionListenerSubscriber:
+        arguments:
+            $env: '%env(APP_ENV)%'
+            $logger: '@logger'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    Adshares\AdSelect\UI\Controller\CampaignController:
+        public: true
+        autowire: false
+        autoconfigure: false
+        arguments:
+            $campaignUpdater: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Service\ElasticSearchCampaignUpdater'
+            $bannerFinder: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Service\BannerFinder'
+            $logger: '@logger'
+
+    Adshares\AdSelect\UI\Controller\EventController:
+        public: true
+        autowire: false
+        autoconfigure: false
+        arguments:
+            $eventCollector: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Service\EventCollector'
+            $eventFinder: '@Adshares\AdSelect\Infrastructure\ElasticSearch\Service\EventFinder'
+            $logger: '@logger'
