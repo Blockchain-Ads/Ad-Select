@@ -1,9 +1,9 @@
 <p align="center">
-    <a href="https://adshares.net/" title="Adshares sp. z o.o." target="_blank">
-        <img src="https://adshares.net/logos/ads.svg" alt="Adshares" width="100" height="100">
-    </a>
+    <a href="https://blockchain-ads.com/" target="_blank">
+         <img src="public/93244431.png" alt="Blockchan-Ads" width="100" height="100">
+     </a>
 </p>
-<h3 align="center"><small>Adshares / AdSelect</small></h3>
+<h3 align="center"><small>Blockchan-Ads / AdSelect</small></h3>
 <p align="center">
     <a href="https://travis-ci.org/adshares/adselect" title="Build Status" target="_blank">
         <img src="https://travis-ci.org/adshares/adselect.svg?branch=master" alt="Build Status">
